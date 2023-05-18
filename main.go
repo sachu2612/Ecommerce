@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
+// OrderStatus represents the status of an order
 type OrderStatus string
 
 const (
@@ -22,7 +22,7 @@ const (
 	Canceled   OrderStatus = "Canceled"
 )
 
-
+// Order represents an order
 type Order struct {
 	ID           string      `json:"id"`
 	Products     []Product   `json:"products"`
@@ -31,6 +31,8 @@ type Order struct {
 	DispatchDate string      `json:"dispatchDate"`
 	ProdQuantity int         `json:"prodQuantity"`
 }
+
+// ProductCategory represents the category of a product
 type ProductCategory string
 
 const (
@@ -39,6 +41,7 @@ const (
 	Budget  ProductCategory = "Budget"
 )
 
+// Product represents a product
 type Product struct {
 	ID       string          `json:"id"`
 	Name     string          `json:"name"`
@@ -47,16 +50,19 @@ type Product struct {
 	Quantity int             `json:"quantity"`
 }
 
+// ProductService represents a service to manage products
 type ProductService struct {
 	DB *sql.DB
 }
 
+// NewProductService creates a new ProductService
 func NewProductService(db *sql.DB) *ProductService {
 	return &ProductService{
 		DB: db,
 	}
 }
 
+// getProductCatalog retrieves the product catalog
 func (ps *ProductService) getProductCatalog(w http.ResponseWriter, r *http.Request) {
 	rows, err := ps.DB.Query("SELECT * FROM products")
 	if err != nil {
@@ -91,6 +97,7 @@ func (ps *ProductService) getProductCatalog(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(productCatalog)
 }
 
+// updateProductCatalog updates the product catalog
 func (ps *ProductService) updateProductCatalog(w http.ResponseWriter, r *http.Request) {
 	var updatedProducts []Product
 	err := json.NewDecoder(r.Body).Decode(&updatedProducts)
@@ -136,17 +143,19 @@ func (ps *ProductService) updateProductCatalog(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 }
 
+// OrderService represents a service to manage orders
 type OrderService struct {
 	DB *sql.DB
 }
 
+// NewOrderService creates a new OrderService
 func NewOrderService(db *sql.DB) *OrderService {
 	return &OrderService{
 		DB: db,
 	}
 }
 
-
+// placeOrder places a new order
 func (os *OrderService) placeOrder(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		OrderProducts []*Product `json:"orderProducts"`
@@ -216,6 +225,7 @@ func (os *OrderService) placeOrder(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// updateOrderStatus updates the order status
 func (os *OrderService) updateOrderStatus(w http.ResponseWriter, r *http.Request) {
 	orderID := mux.Vars(r)["orderID"]
 	var status struct {
@@ -250,12 +260,15 @@ func (os *OrderService) updateOrderStatus(w http.ResponseWriter, r *http.Request
 		http.NotFound(w, r)
 	}
 }
+
+// generateOrderID generates a unique order ID
 func generateOrderID() string {
 	// Generate a unique order ID (e.g., using UUID or other mechanisms)
 	// This is just a simple implementation for demonstration purposes
 	return fmt.Sprintf("ORD%d", time.Now().Unix())
 }
 
+// calculateOrderValue calculates the total value of an order
 func calculateOrderValue(products []*Product) float64 {
 	premiumProductCount := 0
 	totalOrderValue := 0.0
